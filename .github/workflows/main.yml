@@ -1,0 +1,230 @@
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk, ImageFilter
+import speech_recognition as sr
+import pyttsx3
+
+
+# Initialiser le moteur de synthèse vocale
+engine = pyttsx3.init()
+
+def speak_message(message):
+    engine.say(message)
+    engine.runAndWait()
+
+# Déclarer success_image_tk avant utilisation
+success_image_tk = None
+
+# Fonction appelée lors du clic sur le bouton Soumettre
+def submit_credentials():
+    if user_type.get() == "Visiteur":
+        first_name = entry_first_name.get()
+        last_name = entry_last_name.get()
+        # Ajouter ici le code pour traiter les informations pour le visiteur
+        result_message = f"Bonjour, {first_name} {last_name}! Vous avez choisi d'être un visiteur."
+        speak_message(result_message)
+        result_label.config(text=result_message, fg="green")
+
+        # Obtenir le nom et prénom de l'utilisateur
+        # Dire merci à l'utilisateur avec son nom et prénom
+        if first_name and last_name:
+            speak_message(f"Merci, {first_name} {last_name}!")
+        else:
+            speak_message("Merci pour votre visite.")
+
+    elif user_type.get() == "Employé":
+        username = entry_username.get()
+        password = entry_password.get()
+        # Ajouter ici le code pour traiter les informations pour l'employé
+        if username and password:
+            # Afficher l'image de succès
+            success_image_label.config(image=success_image_tk)
+            result_message = "Connexion réussie en tant qu'employé."
+            speak_message(result_message)
+            result_label.config(text=result_message, fg="green")
+        else:
+            result_message = "Veuillez remplir le nom d'utilisateur et le mot de passe."
+            speak_message(result_message)
+            result_label.config(text=result_message, fg="red")
+
+# Fonction appelée lors du choix de la langue
+def on_language_selected(language):
+    # Mettre à jour la langue choisie
+    global chosen_language
+    chosen_language = language
+
+    # Mettre à jour le texte des étiquettes en fonction de la langue
+    update_labels()
+
+    # Masquer les boutons de choix de langue
+    choose_language_frame.grid_forget()
+
+    # Afficher le cadre de choix de l'utilisateur
+    user_type_frame.grid(row=2, column=0, columnspan=2, pady=5)
+
+    # Parler la langue choisie
+    speak_message(f"Vous avez choisi la langue {language}. Merci!")
+
+# Fonction pour mettre à jour le texte des étiquettes en fonction de la langue choisie
+def update_labels():
+    if chosen_language == "Français":
+        label_username.config(text="Nom d'utilisateur:")
+        label_password.config(text="Mot de passe:")
+        label_first_name.config(text="Prénom:")
+        label_last_name.config(text="Nom de famille:")
+        visitor_button.config(text="Visiteur")
+        employee_button.config(text="Employé")
+        submit_button.config(text="Soumettre")
+    elif chosen_language == "English":
+        label_username.config(text="Username:")
+        label_password.config(text="Password:")
+        label_first_name.config(text="First Name:")
+        label_last_name.config(text="Last Name:")
+        visitor_button.config(text="Visitor")
+        employee_button.config(text="Employee")
+        submit_button.config(text="Submit")
+
+# Créer la fenêtre principale
+root = tk.Tk()
+root.title("Application avec Interface")
+
+# Initialiser la langue choisie
+chosen_language = None
+
+# Ajouter une image de fond à la fenêtre
+background_image = Image.open("C:/Users/Dell/Desktop/Nouveau dossier - Copie/app/img.png")
+background_image = background_image.resize((root.winfo_screenwidth(), root.winfo_screenheight()), Image.BICUBIC)
+background_photo = ImageTk.PhotoImage(background_image)
+background_label = tk.Label(root, image=background_photo)
+background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+# Ajouter un canevas pour les champs de nom d'utilisateur et de mot de passe
+user_pass_frame = tk.Canvas(root, background="white", highlightthickness=0)
+user_pass_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+# Ajouter une étiquette floue pour créer l'effet de flou en arrière-plan
+blurred_frame = ImageTk.PhotoImage(background_image.filter(ImageFilter.BLUR))
+blurred_frame_label = tk.Label(user_pass_frame, image=blurred_frame)
+blurred_frame_label.place(relwidth=1, relheight=1)
+
+# Ajouter une étiquette pour afficher l'image en haut du canevas
+util_image_path = r"C:/Users/Dell/Desktop/Nouveau dossier - Copie/app/util.png"
+util_image = Image.open(util_image_path)
+util_image = util_image.resize((60, 60))
+util_image_tk = ImageTk.PhotoImage(util_image)
+util_image_label = tk.Label(user_pass_frame, image=util_image_tk)
+util_image_label.grid(row=0, column=0, columnspan=2, pady=5)
+
+# Ajouter des boutons pour choisir la langue
+choose_language_frame = tk.Frame(user_pass_frame, bg='white')
+choose_language_frame.grid(row=1, column=0, columnspan=2, pady=5)
+
+english_button = ttk.Button(choose_language_frame, text="English", command=lambda: on_language_selected("English"))
+english_button.grid(row=0, column=0, pady=5)
+
+french_button = ttk.Button(choose_language_frame, text="Français", command=lambda: on_language_selected("Français"))
+french_button.grid(row=0, column=1, pady=5)
+
+# Ajouter un cadre pour choisir le type d'utilisateur
+user_type_frame = tk.Frame(user_pass_frame, bg='white')
+user_type_frame.grid(row=2, column=0, columnspan=2, pady=5)
+
+# Appliquer l'effet de flou à la surface entre les boutons Visiteur et Employé
+blurred_frame_user_type = ImageTk.PhotoImage(background_image.filter(ImageFilter.BLUR))
+blurred_frame_user_type_label = tk.Label(user_type_frame, image=blurred_frame_user_type)
+blurred_frame_user_type_label.place(relwidth=1, relheight=1)
+
+label_user_type = tk.Label(user_type_frame, text="Choisissez le type d'utilisateur:")
+label_user_type.grid(row=0, column=0, columnspan=2, pady=5)
+
+# Variable pour stocker le type d'utilisateur sélectionné
+user_type = tk.StringVar()
+
+visitor_button = ttk.Radiobutton(user_type_frame, text="Visiteur", variable=user_type, value="Visiteur", command=lambda: switch_user_type("Visiteur"))
+visitor_button.grid(row=1, column=0, pady=5)
+
+employee_button = ttk.Radiobutton(user_type_frame, text="Employé", variable=user_type, value="Employé", command=lambda: switch_user_type("Employé"))
+employee_button.grid(row=1, column=1, pady=5)
+
+# Ajouter des champs pour le nom, prénom, nom d'utilisateur et mot de passe au canevas
+label_first_name = tk.Label(user_pass_frame, text="", fg="black")
+label_first_name.grid(row=3, column=0, pady=5)
+
+entry_first_name = ttk.Entry(user_pass_frame)
+entry_first_name.grid(row=3, column=1, pady=5)
+
+label_last_name = tk.Label(user_pass_frame, text="", fg="black")
+label_last_name.grid(row=4, column=0, pady=5)
+
+entry_last_name = ttk.Entry(user_pass_frame)
+entry_last_name.grid(row=4, column=1, pady=5)
+
+label_username = tk.Label(user_type_frame, text="", fg="black")
+label_username.grid(row=5, column=0, pady=5)
+
+entry_username = ttk.Entry(user_type_frame)
+entry_username.grid(row=5, column=1, pady=5)
+
+label_password = tk.Label(user_type_frame, text="", fg="black")
+label_password.grid(row=6, column=0, pady=5)
+
+entry_password = ttk.Entry(user_type_frame, show="*")
+entry_password.grid(row=6, column=1, pady=5)
+
+# Ajouter un bouton pour soumettre les informations
+submit_button = ttk.Button(user_pass_frame, text="Submit", command=submit_credentials)
+submit_button.grid(row=7, column=0, columnspan=2, pady=5)
+
+# Ajouter une étiquette pour afficher le résultat (à des fins d'exemple)
+result_label = tk.Label(user_pass_frame, text="", fg="black")
+result_label.grid(row=8, column=0, columnspan=2, pady=5)
+
+# Ajouter une étiquette pour afficher l'image de succès
+success_image_label = tk.Label(user_pass_frame, image=None)
+success_image_label.grid(row=9, column=0, columnspan=2, pady=5)
+
+def switch_user_type(user_type):
+    if user_type == "Visiteur":
+        # Cacher les champs d'employé
+        label_username.grid_remove()
+        entry_username.grid_remove()
+        label_password.grid_remove()
+        entry_password.grid_remove()
+
+        # Afficher les champs de visiteur
+        label_first_name.grid()
+        entry_first_name.grid()
+        label_last_name.grid()
+        entry_last_name.grid()
+
+        # Annoncer le choix du visiteur
+        speak_message("Vous avez choisi d'être un visiteur.")
+
+        # Obtenir le nom et prénom de l'utilisateur
+        # Dire merci à l'utilisateur avec son nom et prénom
+        first_name = entry_first_name.get()
+        last_name = entry_last_name.get()
+
+        if first_name and last_name:
+            speak_message(f"Merci, {first_name} {last_name}!")
+        else:
+            speak_message("Merci pour votre visite.")
+
+    elif user_type == "Employé":
+        # Cacher les champs de visiteur
+        label_first_name.grid_remove()
+        entry_first_name.grid_remove()
+        label_last_name.grid_remove()
+        entry_last_name.grid_remove()
+
+        # Afficher les champs d'employé
+        label_username.grid()
+        entry_username.grid()
+        label_password.grid()
+        entry_password.grid()
+
+        # Annoncer le choix de l'employé
+        speak_message("Vous avez choisi d'être un employé.")
+
+# Exécuter la boucle principale
+root.mainloop()
